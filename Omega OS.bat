@@ -67,65 +67,25 @@ if not defined OMEGA_LANG goto langprompt
 echo %OMEGA_LANG% > .lang
 echo [INFO] Language saved.
 
-:: 3. API Wizard
-:apiwizard
+:: 3. Setup Owner API Keys
 echo.
-echo =========================================
-echo             API SETUP WIZARD
-echo =========================================
-echo Omega OS requires API keys for AI capabilities.
-echo.
-echo [1] Use Owner API Keys (Quick Start)
-echo [2] Use Your Own API Keys (Recommended)
-echo.
-set /p apichoice="Enter 1 or 2: "
-
-if "%apichoice%"=="1" goto ownerapi
-if "%apichoice%"=="2" goto userapi
-echo Invalid choice. Please enter 1 or 2.
-goto apiwizard
-
-:ownerapi
-echo.
-echo [INFO] Using Owner's API keys securely in memory...
+echo [INFO] Loading Owner's API keys securely in memory...
 set GEMINI_API_KEY=AQ.Ab8RN6KQxsvr1I_bgDMCyAP4IrdxqLYVTTu9VvtcGAlVgFadUg
 set HF_API_KEY=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
-goto validate
-
-:userapi
-echo.
-echo =========================================
-echo          CREATE YOUR API KEYS
-echo =========================================
-echo We will open the API creation pages for you in...
-timeout /t 7
-start https://aistudio.google.com/app/apikey
-start https://huggingface.co/settings/tokens
-echo.
-set /p user_gemini="Paste your Gemini API Key: "
-set /p user_hf="Paste your Hugging Face API Key: "
-set "GEMINI_API_KEY=%user_gemini%"
-set "HF_API_KEY=%user_hf%"
 
 :validate
 echo.
 echo [INFO] Checking API keys...
 python omega_os\core\validate_api.py
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] API Keys failed validation! Please try again.
-    goto apiwizard
+    echo [ERROR] Owner API Keys failed validation! Please check them in Omega OS.bat.
+    pause
+    exit /b 1
 )
 
-:: Only save to .env if user chose option 2
-if "%apichoice%"=="2" (
-    echo GEMINI_API_KEY="%GEMINI_API_KEY%" > .env
-    echo HF_API_KEY="%HF_API_KEY%" >> .env
-    echo [INFO] Keys saved permanently.
-) else (
-    :: Ensure .env exists but is empty or clear the keys so owner keys aren't saved
-    echo # Owner API session > .env
-    echo [INFO] Owner Keys loaded for this session only.
-)
+:: Ensure .env exists but is empty or clear the keys so owner keys aren't saved to disk
+echo # Owner API session > .env
+echo [INFO] Owner Keys loaded and validated for this session.
 
 :: Launch the application maximized
 echo.
