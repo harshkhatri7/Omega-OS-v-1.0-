@@ -51,8 +51,11 @@ def install_requirements():
                     stderr=subprocess.DEVNULL
                 )
             except subprocess.CalledProcessError:
-                print(f"\n[ERROR] Failed to install {req}. Please check your connection.")
-                sys.exit(1)
+                if "PyAudio" in req:
+                    print(f"\n[WARNING] Failed to install {req}. Voice input will be disabled, but Omega OS will still work.")
+                else:
+                    print(f"\n[ERROR] Failed to install {req}. Please check your connection.")
+                    sys.exit(1)
             
     # Final 100% state
     bar = '█' * bar_length

@@ -35,6 +35,9 @@ def listen() -> str:
             
         text = r.recognize_google(audio)
         return text
+    except AttributeError:
+        # PyAudio not installed
+        return ""
     except sr.WaitTimeoutError:
         return ""
     except sr.UnknownValueError:
@@ -48,7 +51,12 @@ def listen() -> str:
 def start_background_listener(app_callback):
     """Starts listening in the background for the wake word 'omega'."""
     r = sr.Recognizer()
-    mic = sr.Microphone()
+    
+    try:
+        mic = sr.Microphone()
+    except AttributeError:
+        # PyAudio not installed, disable voice listener
+        return lambda x=None: None
     
     with mic as source:
         r.adjust_for_ambient_noise(source, duration=1)
