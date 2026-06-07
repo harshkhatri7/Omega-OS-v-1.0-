@@ -16,51 +16,34 @@ def install_requirements():
         print("[INFO] No requirements to install.")
         return
         
-    bar_length = 30
+    # Split out PyAudio to handle its potential failure gracefully
+    core_reqs = [r for r in reqs if "PyAudio" not in r]
+    pyaudio_req = next((r for r in reqs if "PyAudio" in r), None)
     
-    print() # New line for the progress bar
-    for i, req in enumerate(reqs):
-        # Progress calculation (current item being downloaded)
-        progress = i / total
-        filled_length = int(bar_length * progress)
-        bar = '█' * filled_length + '░' * (bar_length - filled_length)
+    print("\n[INFO] Installing core OS requirements... (This may take a minute)")
+    try:
+        # Run bulk install for massive speed improvement
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-q"] + core_reqs,
+            check=True
+        )
+    except subprocess.CalledProcessError:
+        print("\n[ERROR] Failed to install core requirements. Please check your internet connection.")
+        sys.exit(1)
         
-        # Determine package name for display (strip versions)
-        display_req = req.split(">=")[0].split("==")[0].split("<=")[0].strip()
-        display_req_padded = (display_req[:15] + '...') if len(display_req) > 15 else display_req.ljust(18)
-        
-        # Print progress using carriage return to overwrite the line
-        sys.stdout.write(f"\r[INFO] Downloading: {display_req_padded} [{bar}] [{i+1}/{total}]")
-        sys.stdout.flush()
-        
-        # Check if already installed
+    if pyaudio_req:
         try:
-            import pkg_resources
-            pkg_resources.require(req)
-            already_installed = True
-        except Exception:
-            already_installed = False
+            # Install PyAudio separately so it doesn't crash the whole process if it fails
+            subprocess.run(
+                [sys.executable, "-m", "pip", "install", "-q", pyaudio_req],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+        except subprocess.CalledProcessError:
+            print(f"\n[WARNING] Failed to install {pyaudio_req}. Voice input will be disabled, but Omega OS will still work.")
 
-        if not already_installed:
-            # Install the package silently
-            try:
-                subprocess.run(
-                    [sys.executable, "-m", "pip", "install", "-q", req],
-                    check=True,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-            except subprocess.CalledProcessError:
-                if "PyAudio" in req:
-                    print(f"\n[WARNING] Failed to install {req}. Voice input will be disabled, but Omega OS will still work.")
-                else:
-                    print(f"\n[ERROR] Failed to install {req}. Please check your connection.")
-                    sys.exit(1)
-            
-    # Final 100% state
-    bar = '█' * bar_length
-    sys.stdout.write(f"\r[INFO] Download Complete!   {' '*18} [{bar}] [{total}/{total}]\n")
-    sys.stdout.flush()
+    print("\n[INFO] Download Complete!")
 
 if __name__ == "__main__":
     install_requirements()
