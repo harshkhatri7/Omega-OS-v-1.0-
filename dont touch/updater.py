@@ -46,7 +46,7 @@ def check_for_updates():
         with open(version_file, "w") as f:
             f.write(local_version)
 
-    raw_version_url = get_raw_url(GITHUB_REPO_URL, "dont touch/version.txt")
+    raw_version_url = get_raw_url(GITHUB_REPO_URL, "dont%20touch/version.txt")
     if not raw_version_url:
         return
 
