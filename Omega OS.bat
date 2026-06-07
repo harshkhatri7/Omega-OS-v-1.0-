@@ -67,26 +67,33 @@ if not defined OMEGA_LANG goto langprompt
 echo %OMEGA_LANG% > .lang
 echo [INFO] Language saved.
 
-:: 3. Setup Owner API Keys
-echo.
-echo [INFO] Loading Owner's API keys securely in memory...
-set GEMINI_API_KEY=AQ.Ab8RN6KQxsvr1I_bgDMCyAP4IrdxqLYVTTu9VvtcGAlVgFadUg
-set HF_API_KEY=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
-
 :validate
 echo.
 echo [INFO] Checking API keys...
 python omega_os\core\validate_api.py
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Owner API Keys failed validation! Please check them in Omega OS.bat.
-    pause
-    exit /b 1
-)
+if %ERRORLEVEL% EQU 0 goto boot
 
-:: Ensure .env exists but is empty or clear the keys so owner keys aren't saved to disk
-echo # Owner API session > .env
-echo [INFO] Owner Keys loaded and validated for this session.
+:apiwizard
+echo.
+echo =========================================
+echo             API SETUP WIZARD
+echo =========================================
+echo Omega OS requires API keys for AI capabilities.
+echo It seems your keys are missing or invalid.
+echo.
+echo We will open the API creation pages for you in...
+timeout /t 5
+start https://aistudio.google.com/app/apikey
+start https://huggingface.co/settings/tokens
+echo.
+set /p user_gemini="Paste your Gemini API Key: "
+set /p user_hf="Paste your Hugging Face API Key: "
+echo GEMINI_API_KEY="%user_gemini%" > .env
+echo HF_API_KEY="%user_hf%" >> .env
+echo [INFO] Keys saved.
+goto validate
 
+:boot
 :: Launch the application maximized
 echo.
 echo [INFO] All requirements met. Booting Omega OS...

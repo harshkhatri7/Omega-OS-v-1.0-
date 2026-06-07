@@ -163,6 +163,10 @@ class OmegaOSApp(App):
         width: 30;
     }
     
+    #text-input {
+        width: 3fr;
+    }
+    
     #speak-btn {
         width: 1fr;
     }
@@ -236,6 +240,7 @@ class OmegaOSApp(App):
                     id="lang-select",
                     value=self.default_lang
                 )
+                yield Input(placeholder="Type your command here and press Enter...", id="text-input")
                 yield Button("Press to Speak", id="speak-btn", variant="primary")
         yield Footer()
 
@@ -366,6 +371,28 @@ class OmegaOSApp(App):
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.control.id == "lang-select":
             self.orchestrator.set_language(event.value)
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        if event.input.id == "text-input":
+            text = event.value.strip()
+            if text:
+                # Stop background listener while processing
+                if hasattr(self, '_stop_listening') and self._stop_listening:
+                    self._stop_listening(wait_for_stop=False)
+                
+                # Clear the input
+                event.input.value = ""
+                
+                # Execute the goal directly
+                goal_panel = self.query_one("#goal-panel", Static)
+                self.call_from_thread(goal_panel.update, f"[b]Active Goal:[/b]\n[green]{text}[/green]")
+                self.call_from_thread(self.query_one("#logs-panel", Log).write_line, f"Received text goal: {text}")
+                
+                self.call_from_thread(lambda: asyncio.create_task(self.orchestrator.process_goal(text)))
+                
+                # Restart background listener
+                from omega_os.core.voice import start_background_listener
+                self._stop_listening = start_background_listener(self.process_background_audio)
 
     def download_creation_callback(self):
         self.download_creation()

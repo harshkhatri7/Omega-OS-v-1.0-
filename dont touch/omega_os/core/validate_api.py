@@ -6,6 +6,8 @@ import json
 from google import genai
 
 def validate_keys():
+    from dotenv import load_dotenv
+    load_dotenv()
     gemini_key = os.environ.get("GEMINI_API_KEY")
     hf_key = os.environ.get("HF_API_KEY")
     
