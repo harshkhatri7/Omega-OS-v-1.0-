@@ -187,6 +187,18 @@ class OmegaOSApp(App):
 
     def __init__(self):
         super().__init__()
+        
+        # Load version dynamically
+        try:
+            version_file = os.path.join(os.path.dirname(__file__), "..", "..", "version.txt")
+            with open(version_file, "r") as f:
+                v = f.read().strip()
+            self.title = f"OMEGA OS v{v}"
+            self.sub_title = f"Terminal-Native Autonomous OS v{v} | Creator - Harsh Khatri"
+        except Exception:
+            self.title = "OMEGA OS"
+            self.sub_title = "Terminal-Native Autonomous OS | Creator - Harsh Khatri"
+            
         self.orchestrator = Orchestrator(
             self.update_logs, 
             self.update_agent_status, 
