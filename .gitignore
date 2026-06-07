@@ -1,0 +1,6 @@
+dont touch/.venv/
+**/__pycache__/
+*.pyc
+dont touch/.env
+dont touch/.password
+dont touch/.users.json
